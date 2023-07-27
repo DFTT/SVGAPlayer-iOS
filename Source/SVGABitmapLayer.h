@@ -12,8 +12,10 @@
 
 @interface SVGABitmapLayer : CALayer
 
-- (instancetype)initWithFrames:(NSArray<SVGAVideoSpriteFrameEntity *> *)frames;
+- (instancetype)initWithImage:(UIImage *)img;
 
 - (void)stepToFrame:(NSInteger)frame;
 
+- (NSBlockOperation *)preDecodeOperationIfNeed;
+- (void)freeMemory;
 @end

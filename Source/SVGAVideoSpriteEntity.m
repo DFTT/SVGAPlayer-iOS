@@ -64,8 +64,7 @@
 - (SVGAContentLayer *)requestLayerWithBitmap:(UIImage *)bitmap {
     SVGAContentLayer *layer = [[SVGAContentLayer alloc] initWithFrames:self.frames];
     if (bitmap != nil) {
-        layer.bitmapLayer = [[SVGABitmapLayer alloc] initWithFrames:self.frames];
-        layer.bitmapLayer.contents = (__bridge id _Nullable)([bitmap CGImage]);
+        layer.bitmapLayer = [[SVGABitmapLayer alloc] initWithImage:bitmap];
     }
     layer.vectorLayer = [[SVGAVectorLayer alloc] initWithFrames:self.frames];
     return layer;

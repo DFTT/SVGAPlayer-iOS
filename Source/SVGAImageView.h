@@ -11,6 +11,14 @@
 @interface SVGAImageView : SVGAPlayer
 
 @property (nonatomic, assign) IBInspectable BOOL autoPlay;
-@property (nonatomic, strong) IBInspectable NSString *imageName;
+@property (nonatomic, copy  ) IBInspectable NSString *imageName;
+@property (nonatomic, copy  ) void(^parseCompletion)(SVGAImageView *);
 
+- (void)setImageData:(NSData *)imageData forKey:(NSString *)aKey;
+- (void)setImageWithName:(NSString *)name;
+
+
+
+///
+- (void)cancelParseAndStop;
 @end

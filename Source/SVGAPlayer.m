@@ -31,7 +31,7 @@
 @property (nonatomic, assign) NSRange currentRange;
 @property (nonatomic, assign) BOOL forwardAnimating;
 @property (nonatomic, assign) BOOL reversing;
-
+@property (nonatomic, strong) NSOperationQueue *preDecodeQueue;
 @end 
 
 @implementation SVGAPlayer
@@ -60,6 +60,8 @@
 - (void)initPlayer {
     self.contentMode = UIViewContentModeTop;
     self.clearsAfterStop = YES;
+    
+    self.preDecodeQueue = [[NSOperationQueue alloc] init];
 }
 
 - (void)willMoveToSuperview:(UIView *)newSuperview {
@@ -82,10 +84,21 @@
         NSLog(@"videoItem FPS could not be 0！");
         return;
     }
-    self.displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(next)];
-    self.displayLink.frameInterval = 60 / self.videoItem.FPS;
-    [self.displayLink addToRunLoop:[NSRunLoop mainRunLoop] forMode:self.mainRunLoopMode];
     self.forwardAnimating = !self.reversing;
+    
+    [self p_preDecodeWithFrameIdx:0];
+    [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+        // 防止连续调用 导致出现多个link
+        [self stopAnimation:NO];
+        
+        [self update];
+        
+        self.displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(next)];
+        self.displayLink.frameInterval = 60 / self.videoItem.FPS;
+        [self.displayLink addToRunLoop:[NSRunLoop mainRunLoop] forMode:self.mainRunLoopMode];
+        
+        self.isAnimating = YES;
+    }];
 }
 
 - (void)startAnimationWithRange:(NSRange)range reverse:(BOOL)reverse {
@@ -111,9 +124,21 @@
         self.currentFrame = MAX(0, range.location);
     }
     self.forwardAnimating = !self.reversing;
-    self.displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(next)];
-    self.displayLink.frameInterval = 60 / self.videoItem.FPS;
-    [self.displayLink addToRunLoop:[NSRunLoop mainRunLoop] forMode:self.mainRunLoopMode];
+    
+ 
+    [self p_preDecodeWithFrameIdx:self.currentFrame];
+    [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+        // 防止连续调用 导致出现多个link
+        [self stopAnimation:NO];
+        
+        [self update];
+        
+        self.displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(next)];
+        self.displayLink.frameInterval = 60 / self.videoItem.FPS;
+        [self.displayLink addToRunLoop:[NSRunLoop mainRunLoop] forMode:self.mainRunLoopMode];
+        
+        self.isAnimating = YES;
+    }];
 }
 
 - (void)pauseAnimation {
@@ -134,12 +159,22 @@
     }
     [self clearAudios];
     self.displayLink = nil;
+    self.isAnimating = NO;
+    
+    [self.preDecodeQueue cancelAllOperations];
 }
 
 - (void)clear {
     self.contentLayers = nil;
     [self.drawLayer removeFromSuperlayer];
     self.drawLayer = nil;
+}
+
+- (void)setUnableAnimationContentClip:(BOOL)unableAnimationContentClip {
+    _unableAnimationContentClip = unableAnimationContentClip;
+    if (self.drawLayer != nil) {
+        self.drawLayer.masksToBounds = unableAnimationContentClip ? false : true;
+    }
 }
 
 - (void)clearAudios {
@@ -163,17 +198,22 @@
     }
     [self pauseAnimation];
     self.currentFrame = frame;
-    [self update];
-    if (andPlay) {
-        self.forwardAnimating = YES;
-        if (self.videoItem.FPS == 0) {
-            NSLog(@"videoItem FPS could not be 0！");
-            return;
+    [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+        // 防止连续调用 导致出现多个link
+        [self pauseAnimation];
+        
+        [self update];
+        if (andPlay) {
+            self.forwardAnimating = YES;
+            if (self.videoItem.FPS == 0) {
+                NSLog(@"videoItem FPS could not be 0！");
+                return;
+            }
+            self.displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(next)];
+            self.displayLink.frameInterval = 60 / self.videoItem.FPS;
+            [self.displayLink addToRunLoop:[NSRunLoop mainRunLoop] forMode:self.mainRunLoopMode];
         }
-        self.displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(next)];
-        self.displayLink.frameInterval = 60 / self.videoItem.FPS;
-        [self.displayLink addToRunLoop:[NSRunLoop mainRunLoop] forMode:self.mainRunLoopMode];
-    }
+    }];
 }
 
 - (void)stepToPercentage:(CGFloat)percentage andPlay:(BOOL)andPlay {
@@ -187,7 +227,7 @@
 - (void)draw {
     self.drawLayer = [[CALayer alloc] init];
     self.drawLayer.frame = CGRectMake(0, 0, self.videoItem.videoSize.width, self.videoItem.videoSize.height);
-    self.drawLayer.masksToBounds = true;
+    self.drawLayer.masksToBounds = _unableAnimationContentClip ? false : true;
     NSMutableDictionary *tempHostLayers = [NSMutableDictionary dictionary];
     NSMutableArray *tempContentLayers = [NSMutableArray array];
     
@@ -253,7 +293,7 @@
         [audioLayers addObject:audioLayer];
     }];
     self.audioLayers = audioLayers;
-    [self update];
+    
     [self resize];
 }
 
@@ -335,11 +375,42 @@
     [self resize];
 }
 
+- (void)p_preDecodeWithFrameIdx:(NSInteger)idx {
+    // 预解码下一帧需要显示的"所有"layer图片
+    for (SVGAContentLayer *layer in self.contentLayers) {
+        if ([layer isKindOfClass:[SVGAContentLayer class]]) {
+            NSBlockOperation *opt = [layer preDecodeImageWithNextFrame:idx];
+            if (opt != nil) {
+                [self.preDecodeQueue addOperation:opt];
+            }
+        }
+    }
+}
 - (void)update {
+    NSInteger nextIdx = self.currentFrame + 1;
+    if (nextIdx >= MIN(self.videoItem.frames, self.currentRange.location + self.currentRange.length)) {
+        nextIdx = MAX(0, self.currentRange.location);
+    }
+    NSInteger lastIdx = self.currentFrame - 1;
+    if (lastIdx < (NSInteger)MAX(0, self.currentRange.location)) {
+        lastIdx = MIN(self.videoItem.frames - 1, self.currentRange.location + self.currentRange.length - 1);
+    }
+    if (self.reversing) {
+        lastIdx = lastIdx ^ nextIdx;
+        nextIdx = lastIdx ^ nextIdx;
+        lastIdx = lastIdx ^ nextIdx;
+    }
+    [self p_preDecodeWithFrameIdx:nextIdx];
+    
+    
     [CATransaction setDisableActions:YES];
     for (SVGAContentLayer *layer in self.contentLayers) {
         if ([layer isKindOfClass:[SVGAContentLayer class]]) {
             [layer stepToFrame:self.currentFrame];
+            if (self.loops == 1 || _needTimelyReleaseMemory) {
+                // 只播放一次的 或者 需要降低内存峰值的
+                [layer tryFreeMemoryWithCurrentFrame:self.currentFrame];
+            }
         }
     }
     [CATransaction setDisableActions:NO];
@@ -359,6 +430,11 @@
 }
 
 - (void)next {
+    if (self.preDecodeQueue.operationCount > 0) {
+        // if not finish, watting
+        NSLog(@"--- waiting next frame decode Finish ----");
+        return;
+    }
     if (self.reversing) {
         self.currentFrame--;
         if (self.currentFrame < (NSInteger)MAX(0, self.currentRange.location)) {
@@ -408,12 +484,18 @@
 }
 
 - (void)setVideoItem:(SVGAVideoEntity *)videoItem {
+    
+    BOOL isRepeat = videoItem == _videoItem;
+    
     _videoItem = videoItem;
     _currentRange = NSMakeRange(0, videoItem.frames);
     _reversing = NO;
     _currentFrame = 0;
     _loopCount = 0;
     [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+        if (isRepeat && self.drawLayer != nil) {
+            return;
+        }
         [self clear];
         [self draw];
     }];

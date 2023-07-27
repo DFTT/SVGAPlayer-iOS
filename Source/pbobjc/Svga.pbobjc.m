@@ -9,6 +9,7 @@
 
 #if GPB_USE_PROTOBUF_FRAMEWORK_IMPORTS
 #import <Protobuf/GPBProtocolBuffers_RuntimeSupport.h>
+#import <Protobuf/GPBMessage_PackagePrivate.h>
 #else
 #import "GPBProtocolBuffers_RuntimeSupport.h"
 #endif

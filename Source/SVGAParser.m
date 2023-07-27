@@ -10,7 +10,7 @@
 #import "SVGAVideoEntity.h"
 #import "Svga.pbobjc.h"
 #import <zlib.h>
-#import <SSZipArchive/SSZipArchive.h>
+#import "SSZipArchive.h"
 #import <CommonCrypto/CommonDigest.h>
 
 #define ZIP_MAGIC_NUMBER "PK"

@@ -19,6 +19,10 @@
 @end
 
 @implementation SVGAContentLayer
+{
+    // 当前layer显示的最后一帧idx
+    NSInteger _lastFrameIndexAsShowing;
+}
 
 - (instancetype)initWithFrames:(NSArray *)frames {
     self = [super init];
@@ -27,6 +31,14 @@
         self.masksToBounds = NO;
         _frames = frames;
         _textLayerAlignment = NSTextAlignmentCenter;
+        
+        _lastFrameIndexAsShowing = -1;
+        [frames enumerateObjectsUsingBlock:^(SVGAVideoSpriteFrameEntity *frameItem, NSUInteger idx, BOOL * _Nonnull stop) {
+            if (frameItem.alpha > 0) {
+                _lastFrameIndexAsShowing = idx;
+            }
+        }];
+        
         [self stepToFrame:0];
     }
     return self;
@@ -70,6 +82,13 @@
         if (self.dynamicDrawingBlock) {
             self.dynamicDrawingBlock(self, frame);
         }
+    }
+}
+
+- (void)tryFreeMemoryWithCurrentFrame:(NSInteger)frame {
+    // 如果已经超过自身最大帧 释放掉
+    if (_lastFrameIndexAsShowing >= 0 && frame > _lastFrameIndexAsShowing && self.isHidden && self.bitmapLayer != nil) {
+        [self.bitmapLayer freeMemory];
     }
 }
 
@@ -147,4 +166,16 @@
     }
 }
 
+- (NSBlockOperation *)preDecodeImageWithNextFrame:(NSInteger)next {
+    if (self.dynamicHidden) {
+        return nil;
+    }
+    if (next < self.frames.count) {
+        SVGAVideoSpriteFrameEntity *frameItem = self.frames[next];
+        if (frameItem.alpha > 0.0) {
+            return [self.bitmapLayer preDecodeOperationIfNeed];
+        }
+    }
+    return nil;
+}
 @end

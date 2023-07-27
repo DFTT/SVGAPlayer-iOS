@@ -25,4 +25,10 @@
 - (void)stepToFrame:(NSInteger)frame;
 - (void)resetTextLayerProperties:(NSAttributedString *)attributedString;
 
+
+- (NSBlockOperation *)preDecodeImageWithNextFrame:(NSInteger)next;
+// 及时释放内存
+- (void)tryFreeMemoryWithCurrentFrame:(NSInteger)frame;
+
+
 @end

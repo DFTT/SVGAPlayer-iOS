@@ -34,11 +34,25 @@ typedef void(^SVGAPlayerDynamicDrawingBlock)(CALayer *contentLayer, NSInteger fr
 @property (nonatomic, copy) NSString *fillMode;
 @property (nonatomic, copy) NSRunLoopMode mainRunLoopMode;
 
+// 增加的属性 标识动画中
+@property (nonatomic, assign) BOOL isAnimating;
+// 当动画中 图片帧 在后续播放不需要使用时, 会及时释放掉, 再次播放时会重新解码
+// 某种程度上可以理解用时间换空间, 仅建议在 播放次数少 & 动画内存峰值极高 时开启
+// default NO, 如果loops == 1自动开启
+@property (nonatomic, assign) BOOL needTimelyReleaseMemory;
+// 增加的属性 便于全屏动画的是适配
+// 对于美术给到的固定尺寸动画, 在不同屏幕上难以完美适配(要么一个维度撑不满, 要么一个维度会被裁剪, 要么铺满会变形)
+// 对于全屏动画 建议设置如下 既能保证撑满屏幕不被裁剪, 也能显示出动画videoSize窗口之外的内容, 避免一个维度无法撑满的留白
+// player.frame = [UIScreen mainScreen].bounds;
+// player.contentMode = UIViewContentModeScaleAspectFit;
+// player.unableAnimationContentClip = YES;
+@property (nonatomic, assign) BOOL unableAnimationContentClip;
+
 - (void)startAnimation;
 - (void)startAnimationWithRange:(NSRange)range reverse:(BOOL)reverse;
 - (void)pauseAnimation;
 - (void)stopAnimation;
-- (void)clear;
+- (void)clear; // 勿随意使用, 必要时请搭配stopAnimation使用
 - (void)stepToFrame:(NSInteger)frame andPlay:(BOOL)andPlay;
 - (void)stepToPercentage:(CGFloat)percentage andPlay:(BOOL)andPlay;
 

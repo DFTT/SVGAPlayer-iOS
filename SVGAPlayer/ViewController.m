@@ -51,7 +51,10 @@ static SVGAParser *parser;
                        ];
     [UIApplication sharedApplication].networkActivityIndicatorVisible = YES;
 //    parser.enabledMemoryCache = YES;
-    [parser parseWithURL:[NSURL URLWithString:items[arc4random() % items.count]]
+    NSURL *url = [NSURL URLWithString:items[arc4random() % items.count]];
+    url = [NSURL fileURLWithPath:[NSBundle.mainBundle pathForResource:@"test1" ofType:@"svga"]];
+    NSLog(@"播放 %@", url);
+    [parser parseWithURL:url
          completionBlock:^(SVGAVideoEntity * _Nullable videoItem) {
              [UIApplication sharedApplication].networkActivityIndicatorVisible = NO;
              if (videoItem != nil) {

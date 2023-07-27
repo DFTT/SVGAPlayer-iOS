@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		5B6FA05A2A72199600171315 /* test1.svga in Resources */ = {isa = PBXBuildFile; fileRef = 5B6FA0592A72199600171315 /* test1.svga */; };
 		63712E6521787950001AE014 /* heartbeat.svga in Resources */ = {isa = PBXBuildFile; fileRef = 63712E6421787950001AE014 /* heartbeat.svga */; };
 		63712E6821787A45001AE014 /* SVGAAudioEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 63712E6721787A45001AE014 /* SVGAAudioEntity.m */; };
 		63E817012178809D001D2D62 /* SVGAAudioLayer.m in Sources */ = {isa = PBXBuildFile; fileRef = 63E817002178809D001D2D62 /* SVGAAudioLayer.m */; };
@@ -44,6 +45,7 @@
 
 /* Begin PBXFileReference section */
 		1DDA5FF396660C7C932DF9B8 /* libPods-SVGAPlayer.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-SVGAPlayer.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		5B6FA0592A72199600171315 /* test1.svga */ = {isa = PBXFileReference; lastKnownFileType = file; path = test1.svga; sourceTree = "<group>"; };
 		63712E6421787950001AE014 /* heartbeat.svga */ = {isa = PBXFileReference; lastKnownFileType = file; path = heartbeat.svga; sourceTree = "<group>"; };
 		63712E6621787A45001AE014 /* SVGAAudioEntity.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SVGAAudioEntity.h; sourceTree = "<group>"; };
 		63712E6721787A45001AE014 /* SVGAAudioEntity.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SVGAAudioEntity.m; sourceTree = "<group>"; };
@@ -143,6 +145,7 @@
 		90A676DF1D13A6DF008A69F3 /* SVGAPlayer */ = {
 			isa = PBXGroup;
 			children = (
+				5B6FA0592A72199600171315 /* test1.svga */,
 				90D7C9FA1F7E2AA3006E74F0 /* Samples */,
 				90A676E31D13A6DF008A69F3 /* AppDelegate.h */,
 				90A676E41D13A6DF008A69F3 /* AppDelegate.m */,
@@ -300,6 +303,7 @@
 				90A676F01D13A6DF008A69F3 /* LaunchScreen.storyboard in Resources */,
 				718A146D235718E000FED5D3 /* Rocket.svga in Resources */,
 				90A676ED1D13A6DF008A69F3 /* Assets.xcassets in Resources */,
+				5B6FA05A2A72199600171315 /* test1.svga in Resources */,
 				63712E6521787950001AE014 /* heartbeat.svga in Resources */,
 				90A676EB1D13A6DF008A69F3 /* Main.storyboard in Resources */,
 				90CB64F91EF297E800DAA382 /* SVGAPlayer React-Info.plist in Resources */,
