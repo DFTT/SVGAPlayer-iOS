@@ -110,6 +110,9 @@ static SVGAParser *sharedParser;
     } failureBlock:nil];
 }
 
+- (NSString *)curImageDataKey {
+    return _dataKey;
+}
 
 - (void)cancelParseAndStop {
     _imageName = nil;
