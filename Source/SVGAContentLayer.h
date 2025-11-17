@@ -26,7 +26,7 @@
 - (void)resetTextLayerProperties:(NSAttributedString *)attributedString;
 
 
-- (NSBlockOperation *)preDecodeImageWithNextFrame:(NSInteger)next;
+- (NSBlockOperation *)preDecodeImageWithNextFrame:(NSInteger)next scale:(CGFloat)scale;
 // 及时释放内存
 - (void)tryFreeMemoryWithCurrentFrame:(NSInteger)frame;
 

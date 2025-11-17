@@ -35,7 +35,9 @@
 @end 
 
 @implementation SVGAPlayer
-
+{
+    CGFloat _drawScale;
+}
 - (instancetype)init {
     if (self = [super init]) {
         [self initPlayer];
@@ -368,6 +370,10 @@
         CGPoint offset = CGPointMake((1.0 - scaleX) / 2.0 * self.videoItem.videoSize.width, (1 - scaleY) / 2.0 * self.videoItem.videoSize.height);
         self.drawLayer.transform = CATransform3DMakeAffineTransform(CGAffineTransformMake(scaleX, 0, 0, scaleY, -offset.x, -offset.y));
     }
+    CGAffineTransform tf = CATransform3DGetAffineTransform(self.drawLayer.transform);
+    if (tf.a > 0 && tf.a == tf.d){
+        _drawScale = tf.a;
+    }
 }
 
 - (void)layoutSubviews {
@@ -379,7 +385,7 @@
     // 预解码下一帧需要显示的"所有"layer图片
     for (SVGAContentLayer *layer in self.contentLayers) {
         if ([layer isKindOfClass:[SVGAContentLayer class]]) {
-            NSBlockOperation *opt = [layer preDecodeImageWithNextFrame:idx];
+            NSBlockOperation *opt = [layer preDecodeImageWithNextFrame:idx scale:_drawScale];
             if (opt != nil) {
                 [self.preDecodeQueue addOperation:opt];
             }

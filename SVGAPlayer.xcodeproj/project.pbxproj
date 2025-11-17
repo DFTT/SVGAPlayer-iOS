@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		5B6FA05A2A72199600171315 /* test1.svga in Resources */ = {isa = PBXBuildFile; fileRef = 5B6FA0592A72199600171315 /* test1.svga */; };
+		5B982A7D2EC72958004C8CB3 /* UIImage+SVGAImprove.m in Sources */ = {isa = PBXBuildFile; fileRef = 5B982A7C2EC72958004C8CB3 /* UIImage+SVGAImprove.m */; };
 		63712E6521787950001AE014 /* heartbeat.svga in Resources */ = {isa = PBXBuildFile; fileRef = 63712E6421787950001AE014 /* heartbeat.svga */; };
 		63712E6821787A45001AE014 /* SVGAAudioEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 63712E6721787A45001AE014 /* SVGAAudioEntity.m */; };
 		63E817012178809D001D2D62 /* SVGAAudioLayer.m in Sources */ = {isa = PBXBuildFile; fileRef = 63E817002178809D001D2D62 /* SVGAAudioLayer.m */; };
@@ -46,6 +47,8 @@
 /* Begin PBXFileReference section */
 		1DDA5FF396660C7C932DF9B8 /* libPods-SVGAPlayer.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-SVGAPlayer.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		5B6FA0592A72199600171315 /* test1.svga */ = {isa = PBXFileReference; lastKnownFileType = file; path = test1.svga; sourceTree = "<group>"; };
+		5B982A7B2EC72958004C8CB3 /* UIImage+SVGAImprove.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "UIImage+SVGAImprove.h"; sourceTree = "<group>"; };
+		5B982A7C2EC72958004C8CB3 /* UIImage+SVGAImprove.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "UIImage+SVGAImprove.m"; sourceTree = "<group>"; };
 		63712E6421787950001AE014 /* heartbeat.svga */ = {isa = PBXFileReference; lastKnownFileType = file; path = heartbeat.svga; sourceTree = "<group>"; };
 		63712E6621787A45001AE014 /* SVGAAudioEntity.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SVGAAudioEntity.h; sourceTree = "<group>"; };
 		63712E6721787A45001AE014 /* SVGAAudioEntity.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SVGAAudioEntity.m; sourceTree = "<group>"; };
@@ -126,6 +129,8 @@
 		90A676D41D13A6DF008A69F3 = {
 			isa = PBXGroup;
 			children = (
+				5B982A7B2EC72958004C8CB3 /* UIImage+SVGAImprove.h */,
+				5B982A7C2EC72958004C8CB3 /* UIImage+SVGAImprove.m */,
 				90A676F71D13A70E008A69F3 /* Source */,
 				90A676DF1D13A6DF008A69F3 /* SVGAPlayer */,
 				90A676DE1D13A6DF008A69F3 /* Products */,
@@ -362,6 +367,7 @@
 				90D7CA161F7FA07A006E74F0 /* Svga.pbobjc.m in Sources */,
 				90A676E21D13A6DF008A69F3 /* main.m in Sources */,
 				90A676FD1D13A82A008A69F3 /* SVGAParser.m in Sources */,
+				5B982A7D2EC72958004C8CB3 /* UIImage+SVGAImprove.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

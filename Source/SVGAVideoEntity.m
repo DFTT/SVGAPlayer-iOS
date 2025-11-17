@@ -13,6 +13,8 @@
 #import "SVGAAudioEntity.h"
 #import "Svga.pbobjc.h"
 
+#import "UIImage+SVGAImprove.h"
+
 #define MP3_MAGIC_NUMBER "ID3"
 
 @interface SVGAVideoEntity ()
@@ -95,6 +97,8 @@ static dispatch_semaphore_t videoSemaphore;
                         UIImage *image = [[UIImage alloc] initWithData:imageData scale:2.0];
                         if (image != nil) {
                             [images setObject:image forKey:[key stringByDeletingPathExtension]];
+                            image.keyName = key;
+                            image.originImageData = imageData;
                         }
                     }
                 }
@@ -166,6 +170,8 @@ static dispatch_semaphore_t videoSemaphore;
                     UIImage *image = [[UIImage alloc] initWithData:imageData scale:2.0];
                     if (image != nil) {
                         [images setObject:image forKey:key];
+                        image.keyName = key;
+                        image.originImageData = imageData;
                     }
                 }
             }
@@ -178,6 +184,8 @@ static dispatch_semaphore_t videoSemaphore;
                 UIImage *image = [[UIImage alloc] initWithData:protoImages[key] scale:2.0];
                 if (image != nil) {
                     [images setObject:image forKey:key];
+                    image.keyName = key;
+                    image.originImageData = protoImages[key];
                 }
             }
         }

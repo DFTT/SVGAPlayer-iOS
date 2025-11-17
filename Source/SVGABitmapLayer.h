@@ -16,6 +16,9 @@
 
 - (void)stepToFrame:(NSInteger)frame;
 
-- (NSBlockOperation *)preDecodeOperationIfNeed;
+- (NSBlockOperation *)preDecodeOperationIfNeed:(CGFloat)scale;
 - (void)freeMemory;
+
+- (CGSize)imgSize;
+- (NSString *)imageKeyname;
 @end

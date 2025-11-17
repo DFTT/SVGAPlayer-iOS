@@ -166,14 +166,14 @@
     }
 }
 
-- (NSBlockOperation *)preDecodeImageWithNextFrame:(NSInteger)next {
+- (NSBlockOperation *)preDecodeImageWithNextFrame:(NSInteger)next scale:(CGFloat)scale {
     if (self.dynamicHidden) {
         return nil;
     }
     if (next < self.frames.count) {
         SVGAVideoSpriteFrameEntity *frameItem = self.frames[next];
         if (frameItem.alpha > 0.0) {
-            return [self.bitmapLayer preDecodeOperationIfNeed];
+            return [self.bitmapLayer preDecodeOperationIfNeed:scale];
         }
     }
     return nil;
