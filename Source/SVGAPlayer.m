@@ -300,6 +300,10 @@
 }
 
 - (void)resize {
+    // _drawScale计算原理是，先根据播放窗口及屏幕scale, 计算出需要的像素size, 再除去动效文件设计的像素size(videoItem.videoSize)
+    // 从而得到 本次渲染相对源文件的缩放scale
+    CGFloat screenScale = UIScreen.mainScreen.scale;
+
     if (self.contentMode == UIViewContentModeScaleAspectFit) {
         CGFloat videoRatio = self.videoItem.videoSize.width / self.videoItem.videoSize.height;
         CGFloat layerRatio = self.bounds.size.width / self.bounds.size.height;
@@ -311,6 +315,8 @@
                                          - (self.bounds.size.height - self.videoItem.videoSize.height * ratio) / 2.0
                                          );
             self.drawLayer.transform = CATransform3DMakeAffineTransform(CGAffineTransformMake(ratio, 0, 0, ratio, -offset.x, -offset.y));
+
+            _drawScale = MIN(ratio * screenScale, 1.0);
         }
         else {
             CGFloat ratio = self.bounds.size.height / self.videoItem.videoSize.height;
@@ -318,6 +324,8 @@
                                          (1.0 - ratio) / 2.0 * self.videoItem.videoSize.width - (self.bounds.size.width - self.videoItem.videoSize.width * ratio) / 2.0,
                                          (1.0 - ratio) / 2.0 * self.videoItem.videoSize.height);
             self.drawLayer.transform = CATransform3DMakeAffineTransform(CGAffineTransformMake(ratio, 0, 0, ratio, -offset.x, -offset.y));
+            
+            _drawScale = MIN(ratio * screenScale, 1.0);
         }
     }
     else if (self.contentMode == UIViewContentModeScaleAspectFill) {
@@ -331,6 +339,8 @@
                                          - (self.bounds.size.height - self.videoItem.videoSize.height * ratio) / 2.0
                                          );
             self.drawLayer.transform = CATransform3DMakeAffineTransform(CGAffineTransformMake(ratio, 0, 0, ratio, -offset.x, -offset.y));
+            
+            _drawScale = MIN(ratio * screenScale, 1.0);
         }
         else {
             CGFloat ratio = self.bounds.size.height / self.videoItem.videoSize.height;
@@ -338,12 +348,16 @@
                                          (1.0 - ratio) / 2.0 * self.videoItem.videoSize.width - (self.bounds.size.width - self.videoItem.videoSize.width * ratio) / 2.0,
                                          (1.0 - ratio) / 2.0 * self.videoItem.videoSize.height);
             self.drawLayer.transform = CATransform3DMakeAffineTransform(CGAffineTransformMake(ratio, 0, 0, ratio, -offset.x, -offset.y));
+            
+            _drawScale = MIN(ratio * screenScale, 1.0);
         }
     }
     else if (self.contentMode == UIViewContentModeTop) {
         CGFloat scaleX = self.frame.size.width / self.videoItem.videoSize.width;
         CGPoint offset = CGPointMake((1.0 - scaleX) / 2.0 * self.videoItem.videoSize.width, (1 - scaleX) / 2.0 * self.videoItem.videoSize.height);
         self.drawLayer.transform = CATransform3DMakeAffineTransform(CGAffineTransformMake(scaleX, 0, 0, scaleX, -offset.x, -offset.y));
+        
+        _drawScale = MIN(scaleX * screenScale, 1.0);
     }
     else if (self.contentMode == UIViewContentModeBottom) {
         CGFloat scaleX = self.frame.size.width / self.videoItem.videoSize.width;
@@ -351,11 +365,15 @@
                                      (1.0 - scaleX) / 2.0 * self.videoItem.videoSize.width,
                                      (1.0 - scaleX) / 2.0 * self.videoItem.videoSize.height);
         self.drawLayer.transform = CATransform3DMakeAffineTransform(CGAffineTransformMake(scaleX, 0, 0, scaleX, -offset.x, -offset.y + self.frame.size.height - self.videoItem.videoSize.height * scaleX));
+        
+        _drawScale = MIN(scaleX * screenScale, 1.0);
     }
     else if (self.contentMode == UIViewContentModeLeft) {
         CGFloat scaleY = self.frame.size.height / self.videoItem.videoSize.height;
         CGPoint offset = CGPointMake((1.0 - scaleY) / 2.0 * self.videoItem.videoSize.width, (1 - scaleY) / 2.0 * self.videoItem.videoSize.height);
         self.drawLayer.transform = CATransform3DMakeAffineTransform(CGAffineTransformMake(scaleY, 0, 0, scaleY, -offset.x, -offset.y));
+        
+        _drawScale = MIN(scaleY * screenScale, 1.0);
     }
     else if (self.contentMode == UIViewContentModeRight) {
         CGFloat scaleY = self.frame.size.height / self.videoItem.videoSize.height;
@@ -363,16 +381,16 @@
                                      (1.0 - scaleY) / 2.0 * self.videoItem.videoSize.width,
                                      (1.0 - scaleY) / 2.0 * self.videoItem.videoSize.height);
         self.drawLayer.transform = CATransform3DMakeAffineTransform(CGAffineTransformMake(scaleY, 0, 0, scaleY, -offset.x + self.frame.size.width - self.videoItem.videoSize.width * scaleY, -offset.y));
+        
+        _drawScale = MIN(scaleY * screenScale, 1.0);
     }
     else {
         CGFloat scaleX = self.frame.size.width / self.videoItem.videoSize.width;
         CGFloat scaleY = self.frame.size.height / self.videoItem.videoSize.height;
         CGPoint offset = CGPointMake((1.0 - scaleX) / 2.0 * self.videoItem.videoSize.width, (1 - scaleY) / 2.0 * self.videoItem.videoSize.height);
         self.drawLayer.transform = CATransform3DMakeAffineTransform(CGAffineTransformMake(scaleX, 0, 0, scaleY, -offset.x, -offset.y));
-    }
-    CGAffineTransform tf = CATransform3DGetAffineTransform(self.drawLayer.transform);
-    if (tf.a > 0 && tf.a == tf.d){
-        _drawScale = tf.a;
+                
+        _drawScale = MIN(MAX(scaleX, scaleY) * screenScale, 1.0);
     }
 }
 

@@ -230,18 +230,18 @@ CGImageRef XYZY_DecodeThumbnailFromCGImage(CGImageRef imageRef, CGFloat scale) {
         return nil;
     }
 #endif
-    
+    UIImage *capturedImage = _image;
     __weak typeof(self) weak_self = self;
     return _decodeOpt = [NSBlockOperation blockOperationWithBlock:^{
         __strong typeof(weak_self) strong_self = weak_self;
-        if (!strong_self) {
+        if (!strong_self || capturedImage == nil) {
             return ;
         }
         @autoreleasepool {
-            UIImage *decodeImg = [strong_self->_image x__getImageByDecoded:scale];
+            UIImage *decodeImg = [capturedImage x__getImageByDecoded:scale];
             if (decodeImg != nil) {
                 dispatch_async(dispatch_get_main_queue(), ^{
-                    if (strong_self.contents == nil) {
+                    if (strong_self.contents == nil && strong_self->_image == capturedImage) {
                         strong_self->_image = decodeImg; // 覆盖
                         strong_self.contents = (__bridge id _Nullable)([decodeImg CGImage]);
                         decodeImg.didDecodedForDisplay = YES;
