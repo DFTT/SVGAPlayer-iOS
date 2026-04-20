@@ -92,6 +92,8 @@
     [[NSOperationQueue mainQueue] addOperationWithBlock:^{
         // 防止连续调用 导致出现多个link
         [self stopAnimation:NO];
+        /// 修复上面这行stop 重置了这个字段
+        self.forwardAnimating = !self.reversing;
         
         [self update];
         
