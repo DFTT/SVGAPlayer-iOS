@@ -8,9 +8,13 @@
 
 #import "ViewController.h"
 #import "SVGA.h"
+#import "SVGAContentLayer.h"
+#import "SVGAPlayer-Swift.h"
 
 @interface ViewController ()<SVGAPlayerDelegate>
-
+{
+    TestContainerView *_testView;
+}
 @property (weak, nonatomic) IBOutlet SVGAPlayer *aPlayer;
 @property (weak, nonatomic) IBOutlet UISlider *aSlider;
 @property (weak, nonatomic) IBOutlet UIButton *onBeginButton;
@@ -23,9 +27,49 @@ static SVGAParser *parser;
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    
+    _testView = [[TestContainerView alloc] initWithFrame:CGRectMake(20, 100, 200, 200)];
+    [self.view addSubview:_testView];
+    [_testView run];
+    
     self.aPlayer.delegate = self;
     self.aPlayer.loops = 1;
     self.aPlayer.clearsAfterStop = YES;
+    self.aPlayer.contentMode = UIViewContentModeScaleAspectFill;
+    self.aPlayer.layer.borderWidth = 1;
+    self.aPlayer.layer.borderColor = UIColor.redColor.CGColor;
+    
+    UIView *vvvvvv = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 20, 20)];
+    vvvvvv.backgroundColor = [UIColor.redColor colorWithAlphaComponent:0.7];
+    [self.aPlayer addSubview:vvvvvv];
+    
+    
+    [self.aPlayer setDrawingBlock:^(CALayer *contentLayer, NSInteger frameIndex, SVGAVideoSpriteFrameEntity *frameItem) {
+        if (contentLayer.isHidden || frameItem.alpha <= 0.0) {
+            vvvvvv.hidden = YES;
+            return;
+        }
+        vvvvvv.hidden = NO;
+
+        // 1) 还原旋转/缩放:只取线性部分(平移交给 center,否则会和 center 重复叠加导致错位)
+        //    自身 transform 的旋转/缩放,再叠上 drawLayer(设计坐标系→播放器坐标系)的缩放
+        CGAffineTransform t = frameItem.transform;
+        t.tx = 0; t.ty = 0;
+        CGAffineTransform p = contentLayer.superlayer.affineTransform; // superlayer 即 drawLayer
+        p.tx = 0; p.ty = 0;
+        t = CGAffineTransformConcat(t, p);
+
+        // 2) 还原大小:bounds 用设计尺寸(= layout.size),缩放已在 transform 里,避免重复缩放
+        vvvvvv.bounds = contentLayer.bounds;
+        vvvvvv.transform = t;
+
+        // 3) 还原位置:把 contentLayer 的中心点换算到播放器坐标系(已含所有平移:drawLayer offset / frameItem 平移 / nx-ny 补偿)
+        CGPoint localCenter = CGPointMake(CGRectGetMidX(contentLayer.bounds),
+                                          CGRectGetMidY(contentLayer.bounds));
+        vvvvvv.center = [self.aPlayer.layer convertPoint:localCenter fromLayer:contentLayer];
+
+        [self.aPlayer bringSubviewToFront:vvvvvv];
+    } forKey:@"head"];
     parser = [[SVGAParser alloc] init];
     [self onChange:nil];
 }
@@ -52,7 +96,7 @@ static SVGAParser *parser;
     [UIApplication sharedApplication].networkActivityIndicatorVisible = YES;
 //    parser.enabledMemoryCache = YES;
     NSURL *url = [NSURL URLWithString:items[arc4random() % items.count]];
-    url = [NSURL fileURLWithPath:[NSBundle.mainBundle pathForResource:@"test1" ofType:@"svga"]];
+    url = [NSURL fileURLWithPath:[NSBundle.mainBundle pathForResource:@"test2" ofType:@"svga"]];
     NSLog(@"播放 %@", url);
     [parser parseWithURL:url
          completionBlock:^(SVGAVideoEntity * _Nullable videoItem) {

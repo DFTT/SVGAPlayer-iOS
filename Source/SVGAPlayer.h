@@ -8,7 +8,7 @@
 
 #import <UIKit/UIKit.h>
 
-@class SVGAVideoEntity, SVGAPlayer;
+@class SVGAVideoEntity, SVGAPlayer, SVGAVideoSpriteFrameEntity;
 
 @protocol SVGAPlayerDelegate <NSObject>
 
@@ -23,7 +23,7 @@
 
 @end
 
-typedef void(^SVGAPlayerDynamicDrawingBlock)(CALayer *contentLayer, NSInteger frameIndex);
+typedef void(^SVGAPlayerDynamicDrawingBlock)(CALayer *contentLayer, NSInteger frameIndex, SVGAVideoSpriteFrameEntity *frame);
 
 @interface SVGAPlayer : UIView
 

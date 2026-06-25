@@ -1,20 +1,24 @@
 PODS:
   - Protobuf (3.6.1)
+  - SnapKit (4.2.0)
   - SSZipArchive (2.1.4)
 
 DEPENDENCIES:
   - Protobuf (~> 3.4)
+  - SnapKit
   - SSZipArchive (~> 2.1.4)
 
 SPEC REPOS:
-  https://github.com/CocoaPods/Specs.git:
+  trunk:
     - Protobuf
+    - SnapKit
     - SSZipArchive
 
 SPEC CHECKSUMS:
   Protobuf: 1eb9700044745f00181c136ef21b8ff3ad5a0fd5
+  SnapKit: fe8a619752f3f27075cc9a90244d75c6c3f27e2a
   SSZipArchive: 41455d4b8d2b6ab93990820b50dc697c2554a322
 
-PODFILE CHECKSUM: 15ec3c806396baa34a298b2254638f0a6691580c
+PODFILE CHECKSUM: 8198cc9560453a2daa8ef3a43f0e315c4aebbb2e
 
-COCOAPODS: 1.11.2
+COCOAPODS: 1.16.2

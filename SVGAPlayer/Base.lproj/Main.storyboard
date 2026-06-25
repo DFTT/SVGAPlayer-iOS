@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="23094" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="4uQ-1Q-oSI">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="24506" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="4uQ-1Q-oSI">
     <device id="retina4_7" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23084"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="24504"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
@@ -20,10 +20,10 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view contentMode="scaleAspectFit" translatesAutoresizingMaskIntoConstraints="NO" id="cmN-DO-oLC" customClass="SVGAPlayer">
-                                <rect key="frame" x="137.5" y="283.5" width="100" height="100"/>
+                                <rect key="frame" x="87.5" y="233.5" width="200" height="200"/>
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <constraints>
-                                    <constraint firstAttribute="width" constant="100" id="Ddx-77-L3P"/>
+                                    <constraint firstAttribute="width" constant="200" id="Ddx-77-L3P"/>
                                     <constraint firstAttribute="width" secondItem="cmN-DO-oLC" secondAttribute="height" multiplier="1:1" id="xm5-jB-e5a"/>
                                 </constraints>
                             </view>
@@ -132,7 +132,7 @@
                                 </constraints>
                             </view>
                             <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" minValue="0.0" maxValue="1" translatesAutoresizingMaskIntoConstraints="NO" id="iu9-fO-pPv">
-                                <rect key="frame" x="24" y="549" width="327" height="31"/>
+                                <rect key="frame" x="26" y="549" width="323" height="30"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="30" id="0iR-Ol-uxF"/>
                                 </constraints>
@@ -142,7 +142,7 @@
                                 </connections>
                             </slider>
                             <button hidden="YES" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="C20-qv-lcV">
-                                <rect key="frame" x="180" y="253.5" width="30" height="30"/>
+                                <rect key="frame" x="180" y="203.5" width="30" height="30"/>
                                 <state key="normal" title="开始"/>
                                 <state key="selected" title="暂停"/>
                                 <connections>
@@ -150,14 +150,14 @@
                                 </connections>
                             </button>
                             <button hidden="YES" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="bja-sU-K2f">
-                                <rect key="frame" x="121" y="253.5" width="30" height="30"/>
+                                <rect key="frame" x="121" y="203.5" width="30" height="30"/>
                                 <state key="normal" title="快退"/>
                                 <connections>
                                     <action selector="onRetreatButton:" destination="BYZ-38-t0r" eventType="touchUpInside" id="gtQ-WY-bYg"/>
                                 </connections>
                             </button>
                             <button hidden="YES" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="7F2-zY-5ah">
-                                <rect key="frame" x="236" y="253.5" width="30" height="30"/>
+                                <rect key="frame" x="236" y="203.5" width="30" height="30"/>
                                 <state key="normal" title="快进"/>
                                 <connections>
                                     <action selector="onForwardButton:" destination="BYZ-38-t0r" eventType="touchUpInside" id="3Zv-gX-WB3"/>
@@ -204,7 +204,7 @@
             <objects>
                 <navigationController id="4uQ-1Q-oSI" sceneMemberID="viewController">
                     <navigationBar key="navigationBar" contentMode="scaleToFill" id="h5y-PJ-oVu">
-                        <rect key="frame" x="0.0" y="20" width="375" height="44"/>
+                        <rect key="frame" x="0.0" y="20" width="375" height="54"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
                     <connections>

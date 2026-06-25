@@ -9,6 +9,9 @@
 /* Begin PBXBuildFile section */
 		5B6FA05A2A72199600171315 /* test1.svga in Resources */ = {isa = PBXBuildFile; fileRef = 5B6FA0592A72199600171315 /* test1.svga */; };
 		5B982A7D2EC72958004C8CB3 /* UIImage+SVGAImprove.m in Sources */ = {isa = PBXBuildFile; fileRef = 5B982A7C2EC72958004C8CB3 /* UIImage+SVGAImprove.m */; };
+		5BA5EA1D2FEA618100A3935B /* test2.svga in Resources */ = {isa = PBXBuildFile; fileRef = 5BA5EA1C2FEA618100A3935B /* test2.svga */; };
+		5BA5EA202FEBD26500A3935B /* TPSVGABridgeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BA5EA1F2FEBD26500A3935B /* TPSVGABridgeView.swift */; };
+		5BA5EA242FECC6C300A3935B /* TestContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BA5EA232FECC6C300A3935B /* TestContainerView.swift */; };
 		63712E6521787950001AE014 /* heartbeat.svga in Resources */ = {isa = PBXBuildFile; fileRef = 63712E6421787950001AE014 /* heartbeat.svga */; };
 		63712E6821787A45001AE014 /* SVGAAudioEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 63712E6721787A45001AE014 /* SVGAAudioEntity.m */; };
 		63E817012178809D001D2D62 /* SVGAAudioLayer.m in Sources */ = {isa = PBXBuildFile; fileRef = 63E817002178809D001D2D62 /* SVGAAudioLayer.m */; };
@@ -49,6 +52,10 @@
 		5B6FA0592A72199600171315 /* test1.svga */ = {isa = PBXFileReference; lastKnownFileType = file; path = test1.svga; sourceTree = "<group>"; };
 		5B982A7B2EC72958004C8CB3 /* UIImage+SVGAImprove.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "UIImage+SVGAImprove.h"; sourceTree = "<group>"; };
 		5B982A7C2EC72958004C8CB3 /* UIImage+SVGAImprove.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "UIImage+SVGAImprove.m"; sourceTree = "<group>"; };
+		5BA5EA1C2FEA618100A3935B /* test2.svga */ = {isa = PBXFileReference; lastKnownFileType = file; path = test2.svga; sourceTree = "<group>"; };
+		5BA5EA1E2FEBD26400A3935B /* SVGAPlayer-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "SVGAPlayer-Bridging-Header.h"; sourceTree = "<group>"; };
+		5BA5EA1F2FEBD26500A3935B /* TPSVGABridgeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TPSVGABridgeView.swift; sourceTree = "<group>"; };
+		5BA5EA232FECC6C300A3935B /* TestContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestContainerView.swift; sourceTree = "<group>"; };
 		63712E6421787950001AE014 /* heartbeat.svga */ = {isa = PBXFileReference; lastKnownFileType = file; path = heartbeat.svga; sourceTree = "<group>"; };
 		63712E6621787A45001AE014 /* SVGAAudioEntity.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SVGAAudioEntity.h; sourceTree = "<group>"; };
 		63712E6721787A45001AE014 /* SVGAAudioEntity.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SVGAAudioEntity.m; sourceTree = "<group>"; };
@@ -148,18 +155,22 @@
 		90A676DF1D13A6DF008A69F3 /* SVGAPlayer */ = {
 			isa = PBXGroup;
 			children = (
+				5BA5EA1C2FEA618100A3935B /* test2.svga */,
 				5B6FA0592A72199600171315 /* test1.svga */,
 				90D7C9FA1F7E2AA3006E74F0 /* Samples */,
 				90A676E31D13A6DF008A69F3 /* AppDelegate.h */,
 				90A676E41D13A6DF008A69F3 /* AppDelegate.m */,
 				90A676E61D13A6DF008A69F3 /* ViewController.h */,
 				90A676E71D13A6DF008A69F3 /* ViewController.m */,
+				5BA5EA232FECC6C300A3935B /* TestContainerView.swift */,
+				5BA5EA1F2FEBD26500A3935B /* TPSVGABridgeView.swift */,
 				90A676E91D13A6DF008A69F3 /* Main.storyboard */,
 				90A676EC1D13A6DF008A69F3 /* Assets.xcassets */,
 				90A676EE1D13A6DF008A69F3 /* LaunchScreen.storyboard */,
 				90A676F11D13A6DF008A69F3 /* Info.plist */,
 				90CB64F81EF297E800DAA382 /* SVGAPlayer React-Info.plist */,
 				90A676E01D13A6DF008A69F3 /* Supporting Files */,
+				5BA5EA1E2FEBD26400A3935B /* SVGAPlayer-Bridging-Header.h */,
 			);
 			path = SVGAPlayer;
 			sourceTree = "<group>";
@@ -277,6 +288,7 @@
 					90A676DC1D13A6DF008A69F3 = {
 						CreatedOnToolsVersion = 7.3;
 						DevelopmentTeam = S2RM275849;
+						LastSwiftMigration = 2630;
 					};
 				};
 			};
@@ -318,6 +330,7 @@
 				90D7CA1B1F7FB114006E74F0 /* rose_2.0.0.svga in Resources */,
 				E83A58D9247E0E6A00D9F404 /* audio_biling.svga in Resources */,
 				71DAA8A52355B3ED006608A1 /* Goddess.svga in Resources */,
+				5BA5EA1D2FEA618100A3935B /* test2.svga in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -355,6 +368,7 @@
 				90A364DA1E5AED04009347F1 /* SVGAVideoSpriteFrameEntity.m in Sources */,
 				63712E6821787A45001AE014 /* SVGAAudioEntity.m in Sources */,
 				63E817012178809D001D2D62 /* SVGAAudioLayer.m in Sources */,
+				5BA5EA202FEBD26500A3935B /* TPSVGABridgeView.swift in Sources */,
 				90A364D11E5AEC11009347F1 /* SVGABitmapLayer.m in Sources */,
 				904D41F81D223DD20085A21A /* SVGABezierPath.m in Sources */,
 				90A364D71E5AECBD009347F1 /* SVGAVideoSpriteEntity.m in Sources */,
@@ -368,6 +382,7 @@
 				90A676E21D13A6DF008A69F3 /* main.m in Sources */,
 				90A676FD1D13A82A008A69F3 /* SVGAParser.m in Sources */,
 				5B982A7D2EC72958004C8CB3 /* UIImage+SVGAImprove.m in Sources */,
+				5BA5EA242FECC6C300A3935B /* TestContainerView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -480,14 +495,18 @@
 			baseConfigurationReference = 8AD65028FA2D122A34DC4A63 /* Pods-SVGAPlayer.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				DEVELOPMENT_TEAM = S2RM275849;
 				INFOPLIST_FILE = SVGAPlayer/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.opensource.SVGAPlayer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
+				SWIFT_OBJC_BRIDGING_HEADER = "SVGAPlayer/SVGAPlayer-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -497,14 +516,17 @@
 			baseConfigurationReference = E02B8713B25C0283C736EE03 /* Pods-SVGAPlayer.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				DEVELOPMENT_TEAM = S2RM275849;
 				INFOPLIST_FILE = SVGAPlayer/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.opensource.SVGAPlayer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
+				SWIFT_OBJC_BRIDGING_HEADER = "SVGAPlayer/SVGAPlayer-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;

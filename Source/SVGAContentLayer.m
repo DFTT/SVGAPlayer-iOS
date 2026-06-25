@@ -80,7 +80,7 @@
             self.hidden = YES;
         }
         if (self.dynamicDrawingBlock) {
-            self.dynamicDrawingBlock(self, frame);
+            self.dynamicDrawingBlock(self, frame, frameItem);
         }
     }
 }
