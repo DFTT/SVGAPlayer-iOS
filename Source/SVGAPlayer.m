@@ -412,6 +412,26 @@
         }
     }
 }
+
+// 本次 tick 是否需要真的刷新 layer.
+- (BOOL)p_shouldRenderNow {
+    if (_disableVisibilityCheck || !_isAnimating) {
+        return YES;
+    }
+    if (self.isHidden || self.window == nil || self.alpha <= 0.01 || CGRectIsEmpty(self.bounds)) {
+        return NO;
+    }
+    // 一次上溯同时完成 "祖先是否隐藏"
+    UIView *view = self.superview;
+    do {
+        if (view.isHidden || view.alpha <= 0.01) {
+            return NO;
+        }
+    } while (view = view.superview);
+    
+    return YES;
+}
+
 - (void)update {
     NSInteger nextIdx = self.currentFrame + 1;
     if (nextIdx >= MIN(self.videoItem.frames, self.currentRange.location + self.currentRange.length)) {
@@ -426,20 +446,23 @@
         nextIdx = lastIdx ^ nextIdx;
         lastIdx = lastIdx ^ nextIdx;
     }
-    [self p_preDecodeWithFrameIdx:nextIdx];
     
-    
-    [CATransaction setDisableActions:YES];
-    for (SVGAContentLayer *layer in self.contentLayers) {
-        if ([layer isKindOfClass:[SVGAContentLayer class]]) {
-            [layer stepToFrame:self.currentFrame];
-            if (self.loops == 1 || _needTimelyReleaseMemory) {
-                // 只播放一次的 或者 需要降低内存峰值的
-                [layer tryFreeMemoryWithCurrentFrame:self.currentFrame];
+    if ([self p_shouldRenderNow]) {
+        [self p_preDecodeWithFrameIdx:nextIdx];
+        
+        [CATransaction setDisableActions:YES];
+        for (SVGAContentLayer *layer in self.contentLayers) {
+            if ([layer isKindOfClass:[SVGAContentLayer class]]) {
+                [layer stepToFrame:self.currentFrame];
+                if (self.loops == 1 || _needTimelyReleaseMemory) {
+                    // 只播放一次的 或者 需要降低内存峰值的
+                    [layer tryFreeMemoryWithCurrentFrame:self.currentFrame];
+                }
             }
         }
+        [CATransaction setDisableActions:NO];
     }
-    [CATransaction setDisableActions:NO];
+    
     if (self.forwardAnimating && self.audioLayers.count > 0) {
         for (SVGAAudioLayer *layer in self.audioLayers) {
             if (!layer.audioPlaying && layer.audioItem.startFrame <= self.currentFrame && self.currentFrame <= layer.audioItem.endFrame) {

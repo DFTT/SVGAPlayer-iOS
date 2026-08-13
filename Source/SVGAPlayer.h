@@ -47,6 +47,11 @@ typedef void(^SVGAPlayerDynamicDrawingBlock)(CALayer *contentLayer, NSInteger fr
 // player.contentMode = UIViewContentModeScaleAspectFit;
 // player.unableAnimationContentClip = YES;
 @property (nonatomic, assign) BOOL unableAnimationContentClip;
+// 增加的属性 用于优化播放器不可见时无效的渲染
+// 关闭"不可见时跳过 layer 刷新"的优化
+// 仅优化每帧的画面渲染, 不影响 delegate/loopCount/结束回调时机等.
+// default NO (即默认开启优化).
+@property (nonatomic, assign) BOOL disableVisibilityCheck;
 
 - (void)startAnimation;
 - (void)startAnimationWithRange:(NSRange)range reverse:(BOOL)reverse;
