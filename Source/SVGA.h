@@ -11,6 +11,7 @@
 #import "SVGAVideoSpriteFrameEntity.h"
 #import "SVGAPlayer.h"
 #import "SVGAImageView.h"
+#import "SVGAAnimationView.h"
 #import "SVGAVideoEntity.h"
 #import "SVGAExporter.h"
 

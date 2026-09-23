@@ -44,7 +44,7 @@ class TPSVGABridgeView: UIView {
     }
 
     private var __contentSize = CGSize.zero
-    private let svgaPlayer = SVGAImageView()
+    private let svgaPlayer = SVGAAnimationView()
     private var __callback: ((PlayState) -> Void)?
     private var __totalLoops = 1
     private var __curPlayCount = 0
@@ -55,7 +55,26 @@ class TPSVGABridgeView: UIView {
         __totalLoops = loops
 
         __callback = callBack
-        svgaPlayer.imageName = svgaFileName
+
+        svgaPlayer.playNamed(svgaFileName) { [weak self] _, _, error in
+            guard let self = self else { return }
+            if error != nil {
+                // 播放失败
+                self.finish()
+            }
+        }
+    }
+
+    /// 结束的唯一出口。播完、播不成、播到一半被打断都走这儿
+    /// 必须 stopAnimation: loops = 0 时 displayLink 会一直 retain 住 player 空转,
+    /// 上层把本 view 从父视图摘掉也停不了它(willMoveToSuperview: 只对被摘的那个 view 调, 不往下传)
+    private func finish() {
+        // 停播不能挂在"有没有回调要发"上: 中断早于 start(with:) 或第二次中断时 __callback 已是 nil,
+        // 那时若跟着 return 就漏掉了 stopAnimation, loops = 0 的 displayLink 会一直空转下去
+        svgaPlayer.stopAnimation()
+        guard let cb = __callback else { return }
+        __callback = nil
+        cb(.didEnd)
     }
 
     private func setup() {
@@ -132,9 +151,13 @@ extension TPSVGABridgeView: SVGAPlayerDelegate {
                 __callback?(.didStart)
             } else if __curPlayCount == __totalLoops + 1 {
                 // 结束
-                __callback?(.didEnd)
-                __callback = nil
+                finish()
             }
         }
+    }
+
+    // 没播完就停了(资源坏、播放中被移出父视图等)。不接这个的话上层会一直等 .didEnd
+    func svgaPlayer(_ player: SVGAPlayer!, didInterruptWith reason: SVGAPlayerStopReason) {
+        finish()
     }
 }

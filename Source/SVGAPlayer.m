@@ -34,6 +34,12 @@
 @property (nonatomic, strong) NSOperationQueue *preDecodeQueue;
 @end 
 
+// 这几个入口原本把绘制/起播投到 mainQueue 执行, 子线程调用时这部分 UIKit 操作仍落在主线程;
+// 改成同步后要自己补回这点, 否则就是回归。
+// 用 NSOperationQueue mainQueue 而不是 dispatch_async: SVGAParser 的回调也走这个队列, 混用两套先后顺序没保证
+#define SVGA_REQUIRE_MAIN(call) \
+    if (![NSThread isMainThread]) { [[NSOperationQueue mainQueue] addOperationWithBlock:^{ call; }]; return; }
+
 @implementation SVGAPlayer
 {
     CGFloat _drawScale;
@@ -66,59 +72,69 @@
     self.preDecodeQueue = [[NSOperationQueue alloc] init];
 }
 
+- (void)p_notifyInterrupt:(SVGAPlayerStopReason)reason {
+    id<SVGAPlayerDelegate> delegate = self.delegate;
+    if ([delegate respondsToSelector:@selector(svgaPlayer:didInterruptWithReason:)]) {
+        [delegate svgaPlayer:self didInterruptWithReason:reason];
+    }
+}
+
 - (void)willMoveToSuperview:(UIView *)newSuperview {
     [super willMoveToSuperview:newSuperview];
     if (newSuperview == nil) {
+        // 被动停、调用方不知情: drawHierarchy(afterScreenUpdates:YES) 给不在 window 上的 view 做快照时,
+        // 会把它挪进 _UISnapshotWindow 再挪回来, 动画就此永久停。
+        // 这个停删不得(displayLink retain target, loops==0 全靠它回收), 只能让它可被感知
+        BOOL wasAnimating = self.isAnimating;
         [self stopAnimation:YES];
+        if (wasAnimating) {
+            [self p_notifyInterrupt:SVGAPlayerStopReasonDetached];
+        }
     }
 }
 
 - (void)startAnimation {
+    SVGA_REQUIRE_MAIN([self startAnimation])
+    // frames 为 0 的坏文件不在这里拦: loops>0 时老行为是很快"播完", 只接了 didFinished 的调用方靠它往下走
     if (self.videoItem == nil) {
         NSLog(@"videoItem could not be nil！");
+        [self p_notifyInterrupt:SVGAPlayerStopReasonInvalidEntity];
         return;
     } else if (self.drawLayer == nil) {
-        self.videoItem = _videoItem;
+        self.videoItem = _videoItem; // 同步重建 drawLayer / contentLayers
     }
+    // 兼顾"连续调用不要留下多个 link": 这一下把上一次的 displayLink 和预解码任务都清掉
     [self stopAnimation:NO];
     self.loopCount = 0;
     if (self.videoItem.FPS == 0) {
         NSLog(@"videoItem FPS could not be 0！");
+        [self p_notifyInterrupt:SVGAPlayerStopReasonInvalidFPS];
         return;
     }
     self.forwardAnimating = !self.reversing;
-    
-    [self p_preDecodeWithFrameIdx:0];
-    [[NSOperationQueue mainQueue] addOperationWithBlock:^{
-        // 防止连续调用 导致出现多个link
-        [self stopAnimation:NO];
-        /// 修复上面这行stop 重置了这个字段
-        self.forwardAnimating = !self.reversing;
-        
-        [self update];
-        
-        self.displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(next)];
-        self.displayLink.frameInterval = 60 / self.videoItem.FPS;
-        [self.displayLink addToRunLoop:[NSRunLoop mainRunLoop] forMode:self.mainRunLoopMode];
-        
-        self.isAnimating = YES;
-    }];
+
+    // 当前帧由 update 同步渲染, 它会顺带预解码下一帧; 当前帧不必再预解码 —— 会被这次同步渲染抢先, 白解
+    [self p_renderAndRun];
 }
 
 - (void)startAnimationWithRange:(NSRange)range reverse:(BOOL)reverse {
+    SVGA_REQUIRE_MAIN([self startAnimationWithRange:range reverse:reverse])
+    // frames 为 0 / range 越界都不拦, 理由同 startAnimation
     if (self.videoItem == nil) {
         NSLog(@"videoItem could not be nil！");
+        [self p_notifyInterrupt:SVGAPlayerStopReasonInvalidEntity];
         return;
     } else if (self.drawLayer == nil) {
-        self.videoItem = _videoItem;
+        self.videoItem = _videoItem; // 同步重建 drawLayer / contentLayers
     }
+    // 兼顾"连续调用不要留下多个 link"
     [self stopAnimation:NO];
     self.loopCount = 0;
     if (self.videoItem.FPS == 0) {
         NSLog(@"videoItem FPS could not be 0！");
+        [self p_notifyInterrupt:SVGAPlayerStopReasonInvalidFPS];
         return;
     }
-    
     self.currentRange = range;
     self.reversing = reverse;
     if (reverse) {
@@ -128,21 +144,8 @@
         self.currentFrame = MAX(0, range.location);
     }
     self.forwardAnimating = !self.reversing;
-    
- 
-    [self p_preDecodeWithFrameIdx:self.currentFrame];
-    [[NSOperationQueue mainQueue] addOperationWithBlock:^{
-        // 防止连续调用 导致出现多个link
-        [self stopAnimation:NO];
-        
-        [self update];
-        
-        self.displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(next)];
-        self.displayLink.frameInterval = 60 / self.videoItem.FPS;
-        [self.displayLink addToRunLoop:[NSRunLoop mainRunLoop] forMode:self.mainRunLoopMode];
-        
-        self.isAnimating = YES;
-    }];
+
+    [self p_renderAndRun];
 }
 
 - (void)pauseAnimation {
@@ -191,33 +194,43 @@
 }
 
 - (void)stepToFrame:(NSInteger)frame andPlay:(BOOL)andPlay {
+    SVGA_REQUIRE_MAIN([self stepToFrame:frame andPlay:andPlay])
     if (self.videoItem == nil) {
         NSLog(@"videoItem could not be nil！");
         return;
     } else if (self.drawLayer == nil) {
-        self.videoItem = _videoItem;
+        self.videoItem = _videoItem; // 同步重建 drawLayer / contentLayers
     }
     if (frame >= self.videoItem.frames || frame < 0) {
         return;
     }
+    // 兼顾"连续调用不要留下多个 link"
     [self pauseAnimation];
     self.currentFrame = frame;
-    [[NSOperationQueue mainQueue] addOperationWithBlock:^{
-        // 防止连续调用 导致出现多个link
-        [self pauseAnimation];
-        
-        [self update];
-        if (andPlay) {
-            self.forwardAnimating = YES;
-            if (self.videoItem.FPS == 0) {
-                NSLog(@"videoItem FPS could not be 0！");
-                return;
-            }
-            self.displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(next)];
-            self.displayLink.frameInterval = 60 / self.videoItem.FPS;
-            [self.displayLink addToRunLoop:[NSRunLoop mainRunLoop] forMode:self.mainRunLoopMode];
-        }
-    }];
+
+    if (andPlay && self.videoItem.FPS > 0) {
+        self.forwardAnimating = YES;
+        [self p_renderAndRun];
+        return;
+    }
+    [self update];
+    if (andPlay) {
+        NSLog(@"videoItem FPS could not be 0！");
+    }
+}
+
+/// 渲染当前帧, 再挂 displayLink 开播。
+/// isAnimating 先置位再 update: update 会同步跑业务的 dynamicDrawingBlock, 业务若在里面 stop / 换资源 / 再次起播,
+/// 这里就收手 —— 否则挂上的 link 会把业务的 stop 覆盖掉, 或者和业务起的那个 link 并存
+- (void)p_renderAndRun {
+    self.isAnimating = YES;
+    [self update];
+    if (!self.isAnimating || self.displayLink != nil) {
+        return;
+    }
+    self.displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(next)];
+    self.displayLink.frameInterval = 60 / self.videoItem.FPS;
+    [self.displayLink addToRunLoop:[NSRunLoop mainRunLoop] forMode:self.mainRunLoopMode];
 }
 
 - (void)stepToPercentage:(CGFloat)percentage andPlay:(BOOL)andPlay {
@@ -402,6 +415,12 @@
 }
 
 - (void)p_preDecodeWithFrameIdx:(NSInteger)idx {
+    // bounds 还没就绪时 scale 不可信, 这一轮宁可不解: scale<=0 会退化成全尺寸解码, 而结果带着
+    // didDecodedForDisplay 永久写回 UIImage, 布局好了也退不回缩略图。不解不会卡住 —— next 只在
+    // operationCount>0 时才等, 当前帧交给 CA 按需解码, 布局后 layoutSubviews→resize 会补上 _drawScale
+    if (_drawScale <= 0) {
+        return;
+    }
     // 预解码下一帧需要显示的"所有"layer图片
     for (SVGAContentLayer *layer in self.contentLayers) {
         if ([layer isKindOfClass:[SVGAContentLayer class]]) {
@@ -414,8 +433,9 @@
 }
 
 // 本次 tick 是否需要真的刷新 layer.
+// 没挂 link(定帧 / 起播时渲染首帧)总要渲染; 只有 displayLink 驱动的逐帧刷新才按可见性跳过
 - (BOOL)p_shouldRenderNow {
-    if (_disableVisibilityCheck || !_isAnimating) {
+    if (_disableVisibilityCheck || _displayLink == nil) {
         return YES;
     }
     if (self.isHidden || self.window == nil || self.alpha <= 0.01 || CGRectIsEmpty(self.bounds)) {
@@ -423,12 +443,12 @@
     }
     // 一次上溯同时完成 "祖先是否隐藏"
     UIView *view = self.superview;
-    do {
+    while (view) {
         if (view.isHidden || view.alpha <= 0.01) {
             return NO;
         }
-    } while (view = view.superview);
-    
+        view = view.superview;
+    }
     return YES;
 }
 
@@ -479,9 +499,15 @@
 }
 
 - (void)next {
+    // displayLink retain target，invalidate 后若没别的持有者 self 当场析构，之后每一行都是野指针。
+    // 本方法两处会走到 stopAnimation：loops 跑满、以及 delegate 在下面的帧回调里自己停
+    __attribute__((objc_precise_lifetime)) SVGAPlayer *keepSelfAlive = self;
     if (self.preDecodeQueue.operationCount > 0) {
         // if not finish, watting
+#if DEBUG
+        // 预解码跟不上时这里是每帧一条, Release 下别打
         NSLog(@"--- waiting next frame decode Finish ----");
+#endif
         return;
     }
     if (self.reversing) {
@@ -508,7 +534,7 @@
             [self stepToFrame:MIN(self.videoItem.frames - 1, self.currentRange.location + self.currentRange.length - 1) andPlay:NO];
         }
         id delegate = self.delegate;
-        if (delegate != nil && [delegate respondsToSelector:@selector(svgaPlayerDidFinishedAnimation:)]) {
+        if ([delegate respondsToSelector:@selector(svgaPlayerDidFinishedAnimation:)]) {
             [delegate svgaPlayerDidFinishedAnimation:self];
         }
         return;
@@ -533,21 +559,24 @@
 }
 
 - (void)setVideoItem:(SVGAVideoEntity *)videoItem {
-    
-    BOOL isRepeat = videoItem == _videoItem;
-    
+    // 别改回无条件入队: 那会让 contentLayers/_drawScale 晚一轮才就绪, 逼得 startAnimation/stepToFrame
+    // 也入队去排在它后面, 起播就此变成异步 —— stopAnimation 拦不住、isAnimating 晚一拍, 时序 bug 都源于此。
+    // draw 要挂 CALayer 必须主线程是唯一的硬约束, 而 parser 每处回调都已自己回了主队列。
+    // 未布局就直接赋 videoItem 时 draw 看到的 bounds 是 0: transform 会缩成 0(不可见, 和老行为一致),
+    // _drawScale 为 0 由 p_preDecodeWithFrameIdx: 的守卫挡住, 布局后 layoutSubviews→resize 自动补正
+    SVGA_REQUIRE_MAIN([self setVideoItem:videoItem])
+
+    BOOL isRepeat = (videoItem == _videoItem && self.drawLayer != nil);
+
     _videoItem = videoItem;
     _currentRange = NSMakeRange(0, videoItem.frames);
     _reversing = NO;
     _currentFrame = 0;
     _loopCount = 0;
-    [[NSOperationQueue mainQueue] addOperationWithBlock:^{
-        if (isRepeat && self.drawLayer != nil) {
-            return;
-        }
+    if (!isRepeat) {
         [self clear];
         [self draw];
-    }];
+    }
 }
 
 #pragma mark - Dynamic Object
@@ -562,7 +591,7 @@
     if (self.contentLayers.count > 0) {
         for (SVGAContentLayer *layer in self.contentLayers) {
             if ([layer isKindOfClass:[SVGAContentLayer class]] && [layer.imageKey isEqualToString:aKey]) {
-                layer.bitmapLayer.contents = (__bridge id _Nullable)([image CGImage]);
+                [layer.bitmapLayer setImage:image];
             }
         }
     }

@@ -10,10 +10,22 @@
 
 @class SVGAVideoEntity, SVGAPlayer, SVGAVideoSpriteFrameEntity;
 
+/// 动画"没播完就停了"的原因。播完是 svgaPlayerDidFinishedAnimation:, 不在这里
+typedef NS_ENUM(NSInteger, SVGAPlayerStopReason) {
+    SVGAPlayerStopReasonInvalidEntity,  // videoItem 为 nil
+    SVGAPlayerStopReasonInvalidFPS,     // videoItem.FPS == 0
+    SVGAPlayerStopReasonDetached,       // 播放中被移出父视图
+};
+
 @protocol SVGAPlayerDelegate <NSObject>
 
 @optional
 - (void)svgaPlayerDidFinishedAnimation:(SVGAPlayer *)player ;
+
+/// 这次没播完。与 svgaPlayerDidFinishedAnimation: 互斥, 两个合起来覆盖"播放器自行终止"的全部路径,
+/// 所以"播完再播下一个"这类逻辑两个都要实现, 只实现前者会在中断时永久卡住。
+/// 调用方自己 stopAnimation / pauseAnimation / stepToFrame:andPlay: / clear 不回调 —— 自己停的自己知道。
+- (void)svgaPlayer:(SVGAPlayer *)player didInterruptWithReason:(SVGAPlayerStopReason)reason;
 
 - (void)svgaPlayer:(SVGAPlayer *)player didAnimatedToFrame:(NSInteger)frame;
 - (void)svgaPlayer:(SVGAPlayer *)player didAnimatedToPercentage:(CGFloat)percentage;

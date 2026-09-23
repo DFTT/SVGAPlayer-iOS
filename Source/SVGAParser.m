@@ -173,6 +173,13 @@ static NSOperationQueue *unzipQueue;
                         }];
                     }
                 }
+                else {
+                    if (failureBlock) {
+                        [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+                            failureBlock(err ?: [NSError errorWithDomain:NSFilePathErrorKey code:-1 userInfo:nil]);
+                        }];
+                    }
+                }
             }
             else {
                 if (failureBlock) {
@@ -212,6 +219,11 @@ static NSOperationQueue *unzipQueue;
         return;
     }
     if (!data || data.length < 4) {
+        if (failureBlock) {
+            [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+                failureBlock([NSError errorWithDomain:@"Data Error" code:-1 userInfo:@{NSLocalizedDescriptionKey: @"data is empty or too short."}]);
+            }];
+        }
         return;
     }
     if (![SVGAParser isZIPData:data]) {
@@ -233,6 +245,13 @@ static NSOperationQueue *unzipQueue;
                 if (completionBlock) {
                     [[NSOperationQueue mainQueue] addOperationWithBlock:^{
                         completionBlock(videoItem);
+                    }];
+                }
+            }
+            else {
+                if (failureBlock) {
+                    [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+                        failureBlock(err ?: [NSError errorWithDomain:@"Data Error" code:-1 userInfo:@{NSLocalizedDescriptionKey: @"Not a valid SVGA 2.0 movie."}]);
                     }];
                 }
             }
@@ -318,6 +337,13 @@ static NSOperationQueue *unzipQueue;
                                     if (completionBlock) {
                                         [[NSOperationQueue mainQueue] addOperationWithBlock:^{
                                             completionBlock(videoItem);
+                                        }];
+                                    }
+                                }
+                                else {
+                                    if (failureBlock) {
+                                        [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+                                            failureBlock(err ?: [NSError errorWithDomain:NSFilePathErrorKey code:-1 userInfo:nil]);
                                         }];
                                     }
                                 }

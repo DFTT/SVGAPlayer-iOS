@@ -7,4 +7,5 @@
 #import "SVGAVideoSpriteFrameEntity.h"
 #import "SVGAPlayer.h"
 #import "SVGAImageView.h"
+#import "SVGAAnimationView.h"
 

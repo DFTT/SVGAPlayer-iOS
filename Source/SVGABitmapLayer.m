@@ -198,6 +198,14 @@ CGImageRef XYZY_DecodeThumbnailFromCGImage(CGImageRef imageRef, CGFloat scale) {
     return self;
 }
 
+- (void)setImage:(UIImage *)img {
+    _image = img;
+    self.contents = (__bridge id _Nullable)img.CGImage;
+    // 旧图的预解码作废: 就算已经在跑, 回主线程时 _image 已对不上, 也不会写回
+    [_decodeOpt cancel];
+    _decodeOpt = nil;
+}
+
 - (void)stepToFrame:(NSInteger)frame {
     if (self.contents != nil) {
         return ;
