@@ -64,6 +64,9 @@ typedef void(^SVGAPlayerDynamicDrawingBlock)(CALayer *contentLayer, NSInteger fr
 // 仅优化每帧的画面渲染, 不影响 delegate/loopCount/结束回调时机等.
 // default NO (即默认开启优化).
 @property (nonatomic, assign) BOOL disableVisibilityCheck;
+// 音频音量，默认 1.0
+// 限制在 0～1（0 为静音），播放中修改立即生效。换资源或重播时不会自动重置。
+@property (nonatomic, assign) float volume;
 
 - (void)startAnimation;
 - (void)startAnimationWithRange:(NSRange)range reverse:(BOOL)reverse;

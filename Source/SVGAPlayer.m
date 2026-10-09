@@ -15,6 +15,7 @@
 #import "SVGAVectorLayer.h"
 #import "SVGAAudioLayer.h"
 #import "SVGAAudioEntity.h"
+#include <math.h>
 
 @interface SVGAPlayer ()
 
@@ -68,8 +69,17 @@
 - (void)initPlayer {
     self.contentMode = UIViewContentModeTop;
     self.clearsAfterStop = YES;
+    _volume = 1.0f;
     
     self.preDecodeQueue = [[NSOperationQueue alloc] init];
+}
+
+- (void)setVolume:(float)volume {
+    SVGA_REQUIRE_MAIN([self setVolume:volume])
+    _volume = fminf(1.0f, fmaxf(0.0f, volume));
+    for (SVGAAudioLayer *layer in self.audioLayers) {
+        layer.audioPlayer.volume = _volume;
+    }
 }
 
 - (void)p_notifyInterrupt:(SVGAPlayerStopReason)reason {
@@ -234,6 +244,7 @@
 }
 
 - (void)stepToPercentage:(CGFloat)percentage andPlay:(BOOL)andPlay {
+    SVGA_REQUIRE_MAIN([self stepToPercentage:percentage andPlay:andPlay])
     NSInteger frame = (NSInteger)(self.videoItem.frames * percentage);
     if (frame >= self.videoItem.frames && frame > 0) {
         frame = self.videoItem.frames - 1;
@@ -307,6 +318,7 @@
     NSMutableArray *audioLayers = [NSMutableArray array];
     [self.videoItem.audios enumerateObjectsUsingBlock:^(SVGAAudioEntity * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
         SVGAAudioLayer *audioLayer = [[SVGAAudioLayer alloc] initWithAudioItem:obj videoItem:self.videoItem];
+        audioLayer.audioPlayer.volume = self.volume;
         [audioLayers addObject:audioLayer];
     }];
     self.audioLayers = audioLayers;
@@ -590,7 +602,14 @@
     self.dynamicObjects = mutableDynamicObjects;
     if (self.contentLayers.count > 0) {
         for (SVGAContentLayer *layer in self.contentLayers) {
-            if ([layer isKindOfClass:[SVGAContentLayer class]] && [layer.imageKey isEqualToString:aKey]) {
+            if ([layer isKindOfClass:[SVGAContentLayer class]] &&
+                ([layer.imageKey isEqualToString:aKey] || [[layer.imageKey stringByDeletingPathExtension] isEqualToString:aKey])) {
+                if (layer.bitmapLayer == nil) {
+                    layer.bitmapLayer = [[SVGABitmapLayer alloc] initWithImage:image];
+                    layer.bitmapLayer.frame = layer.bounds;
+                    // 与初始化顺序一致：位图在矢量和动态文字下方。
+                    [layer insertSublayer:layer.bitmapLayer atIndex:0];
+                }
                 [layer.bitmapLayer setImage:image];
             }
         }
@@ -625,22 +644,19 @@
         CGSize bitmapSize = CGSizeMake(self.videoItem.images[aKey].size.width * self.videoItem.images[aKey].scale, self.videoItem.images[aKey].size.height * self.videoItem.images[aKey].scale);
         CGSize size = [attributedText boundingRectWithSize:bitmapSize
                                                    options:NSStringDrawingUsesLineFragmentOrigin context:NULL].size;
-        CATextLayer *textLayer;
         for (SVGAContentLayer *layer in self.contentLayers) {
             if ([layer isKindOfClass:[SVGAContentLayer class]] && [layer.imageKey isEqualToString:aKey]) {
-                textLayer = layer.textLayer;
+                CATextLayer *textLayer = layer.textLayer;
                 if (textLayer == nil) {
                     textLayer = [CATextLayer layer];
                     [layer addSublayer:textLayer];
                     layer.textLayer = textLayer;
                     [layer resetTextLayerProperties:attributedText];
                 }
+                textLayer.contentsScale = [[UIScreen mainScreen] scale];
+                [textLayer setString:attributedText];
+                textLayer.frame = CGRectMake(0, 0, size.width, size.height);
             }
-        }
-        if (textLayer != nil) {
-            textLayer.contentsScale = [[UIScreen mainScreen] scale];
-            [textLayer setString:attributedText];
-            textLayer.frame = CGRectMake(0, 0, size.width, size.height);
         }
     }
 }
